@@ -4,8 +4,8 @@
 DROP FUNCTION IF EXISTS get_items_needing_local_shelving_order;
 
 CREATE FUNCTION get_items_needing_local_shelving_order(
-    limit TEXT,
-    offset TEXT,
+    query_limit TEXT,
+    query_offset TEXT,
 )
 RETURNS TABLE (
     hrid TEXT,
@@ -40,8 +40,8 @@ WHERE
             AND item_notes.note_type_name = 'Shelving order'
     )
 OFFSET
-    10
+    query_offset
 LIMIT
-    10
+    query_limit
 $$
 LANGUAGE SQL;
