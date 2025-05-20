@@ -8,6 +8,7 @@ CREATE FUNCTION get_items_needing_local_shelving_order(
     query_limit BIGINT
 )
 RETURNS TABLE (
+	id TEXT,
     hrid TEXT,
     barcode TEXT,
     item_call_number TEXT,
@@ -16,6 +17,7 @@ RETURNS TABLE (
 AS
 $$
 SELECT
+	item__t.id,
     item__t.hrid,
     item__t.barcode,
     item__t.item_level_call_number,
