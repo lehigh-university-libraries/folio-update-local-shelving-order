@@ -4,14 +4,14 @@
 DROP FUNCTION IF EXISTS get_items_needing_local_shelving_order;
 
 CREATE FUNCTION get_items_needing_local_shelving_order(
-    query_limit TEXT,
-    query_offset TEXT,
+    query_offset BIGINT,
+    query_limit BIGINT
 )
 RETURNS TABLE (
     hrid TEXT,
     barcode TEXT,
     item_call_number TEXT,
-    hr_call_number TEXT,
+    hr_call_number TEXT
 )
 AS
 $$
