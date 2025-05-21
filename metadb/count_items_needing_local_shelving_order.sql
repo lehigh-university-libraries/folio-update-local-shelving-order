@@ -16,8 +16,11 @@ FROM
     folio_inventory.item__t item__t
 JOIN folio_inventory.holdings_record__t holdings_record__t 
     ON holdings_record__t.id = item__t.holdings_record_id
+JOIN folio_inventory.call_number_type__t call_number_type__t
+	ON call_number_type__t.id = holdings_record__t.call_number_type_id
 WHERE
-    (
+	call_number_type__t.name = 'Dewey Decimal classification'
+    AND (
         item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]{4,}.*'
         OR
         holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]{4,}.*'
