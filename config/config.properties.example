@@ -1,0 +1,38 @@
+
+[FOLIO]
+
+base_url=https://myinstitution.folio.indexdata.com
+tenant=diku
+
+# A FOLIO user with permissions:
+# - Inventory: View instances, holdings, and items
+# - Inventory: View, create, edit items
+# - Reporting: All permissions
+username=folio_user
+password=some_password
+
+# This note type should contain the local shelving order strings
+shelving_order_item_note_type=Shelving order
+
+[MetaDB]
+
+items_count_url=https://raw.githubusercontent.com/lehigh-university-libraries/folio-update-local-shelving-order/refs/heads/main/metadb/count_items_needing_local_shelving_order.sql
+items_query_url=https://raw.githubusercontent.com/lehigh-university-libraries/folio-update-local-shelving-order/refs/heads/main/metadb/get_items_needing_local_shelving_order.sql
+
+# Number of items to load at once via MetaDB
+batch_size=10
+
+[ShelvingOrderService]
+
+# Deployed instance of https://github.com/lehigh-university-libraries/folio-shelving-order
+# to convert a call number into a shelving order
+base_url=https://apps.myinstitution.edu/folio-shelving-order/shelf-key?callNumber=
+
+# Seconds
+timeout=30
+
+start_offset=0
+
+[Logging]
+# level = INFO
+level = DEBUG
