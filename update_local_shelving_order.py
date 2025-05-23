@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from folioclient import FolioClient  # pip install folioclient
 import logging
+
 # import os
 import requests
 
@@ -8,14 +9,17 @@ logger = None
 config = None
 shelving_order_item_note_type_id = None
 
+
 def main():
     init()
     run()
+
 
 def init():
     init_config()
     init_logging()
     init_folio()
+
 
 def init_config():
     global config
@@ -27,18 +31,20 @@ def init_config():
     # with open(config_path, "r", encoding="utf-8") as f:
     #     config.read_file(f)
 
+
 def init_logging():
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s: %(message)s"
-    )
+    logging.basicConfig(format="%(asctime)s %(levelname)s: %(message)s")
     global logger
     logger = logging.getLogger(__name__)
     logger.setLevel(config["Logging"]["level"].upper())
 
+
 def init_folio():
     def init_folio_internal(folio):
         init_item_note_type(folio)
+
     run_with_folio_client(init_folio_internal)
+
 
 def init_item_note_type(folio):
     result = folio.folio_get(
@@ -56,6 +62,7 @@ def init_item_note_type(folio):
     note_type = config["FOLIO"]["shelving_order_item_note_type"]
     shelving_order_item_note_type_id = item_note_types[note_type]["id"]
 
+
 def run():
     total = load_count_report()
     logger.info("%i items need local shelving order.", total)
@@ -68,12 +75,15 @@ def run():
             logger.info("No more items need local shelving order")
             break
         for report_item in report_items:
-            call_number = report_item["item_call_number"] \
-                if report_item["item_call_number"] \
+            call_number = (
+                report_item["item_call_number"]
+                if report_item["item_call_number"]
                 else report_item["hr_call_number"]
+            )
             local_shelving_order = generate_local_shelving_order(call_number)
             update_item(report_item, local_shelving_order)
         offset += int(config["MetaDB"]["batch_size"])
+
 
 def load_count_report():
     def load_count_internal(folio):
@@ -81,11 +91,13 @@ def load_count_report():
             path="/ldp/db/reports",
             payload={
                 "url": config["MetaDB"]["items_count_url"],
-            }
+            },
         )
         total = result["records"][0]["total"]
         return total
+
     return run_with_folio_client(load_count_internal)
+
 
 def load_items_report_batch(offset):
     def load_items_internal(folio):
@@ -96,23 +108,26 @@ def load_items_report_batch(offset):
                 "params": {
                     "query_offset": str(offset),
                     "query_limit": config["MetaDB"]["batch_size"],
-                }
-            }
+                },
+            },
         )
         records = result["records"]
         return records
+
     return run_with_folio_client(load_items_internal)
+
 
 def generate_local_shelving_order(call_number):
     base_url = config["ShelvingOrderService"]["base_url"]
     timeout = int(config["ShelvingOrderService"]["timeout"])
-    url = base_url + call_number # no encoding needed?
+    url = base_url + call_number  # no encoding needed?
     response = requests.get(url, timeout=timeout)
 
     if response.status_code == 200:
         return response.text
     else:
-        raise Exception('Exception calling shelving order service ' + response.text)
+        raise Exception("Exception calling shelving order service " + response.text)
+
 
 def update_item(report_item, local_shelving_order):
     def update_item_internal(folio):
@@ -147,20 +162,26 @@ def update_item(report_item, local_shelving_order):
             }
         )
         save_item(folio, item)
-        logger.debug("Updated item with barcode %s with local shelving order %s",
-                     barcode,
-                     local_shelving_order)
+        logger.debug(
+            "Updated item with barcode %s with local shelving order %s",
+            barcode,
+            local_shelving_order,
+        )
+
     return run_with_folio_client(update_item_internal)
+
 
 def load_item(folio, item_id):
     item = folio.folio_get(path=f"/inventory/items/{item_id}")
     return item
+
 
 def save_item(folio, item):
     folio.folio_put(
         path=f"/inventory/items/{item['id']}",
         payload=item,
     )
+
 
 def run_with_folio_client(fn):
     folio_config = config["FOLIO"]
@@ -173,5 +194,6 @@ def run_with_folio_client(fn):
     ) as folio:
         return fn(folio)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
