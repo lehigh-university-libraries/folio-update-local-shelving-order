@@ -33,6 +33,11 @@ timeout=30
 
 start_offset=0
 
+# When updating the local shelving order for an item that already has this item note set,
+# 0: Leave the item as is
+# 1: Overwrite the existing shelving order item note
+overwrite=0
+
 [Logging]
 # level = INFO
 level = DEBUG

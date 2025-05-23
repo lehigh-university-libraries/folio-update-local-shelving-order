@@ -129,17 +129,23 @@ def update_item(report_item, local_shelving_order):
             # In the future it may be necessary to handle changed call numbers, where instead of
             # skipping these items we'd have to replace the existing note.
             if note["itemNoteTypeId"] == shelving_order_item_note_type_id:
-                # Skip items that already have this note
-                logger.debug(
-                    "Skipping item with barcode %s as it already has a local shelving order",
-                    barcode
-                )
-                return
-        item["notes"].append({
-            "itemNoteTypeId": shelving_order_item_note_type_id,
-            "note": local_shelving_order,
-            "staffOnly": True,
-        })
+                if config.getboolean("ShelvingOrderService", "overwrite"):
+                    # Delete old note before adding new one below
+                    item["notes"].remove(note)
+                else:
+                    # Skip items that already have this note
+                    logger.debug(
+                        "Skipping item with barcode %s as it already has a local shelving order",
+                        barcode,
+                    )
+                    return
+        item["notes"].append(
+            {
+                "itemNoteTypeId": shelving_order_item_note_type_id,
+                "note": local_shelving_order,
+                "staffOnly": True,
+            }
+        )
         save_item(folio, item)
         logger.debug("Updated item with barcode %s with local shelving order %s",
                      barcode,
