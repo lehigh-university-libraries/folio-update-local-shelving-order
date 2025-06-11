@@ -26,10 +26,10 @@ WHERE
         OR
         holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]{4,}.*'
         OR
-        -- capital letters after the cutter numbers
-        item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+.*'
+        -- lowercase letters after the cutter numbers
+        item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[a-z]+.*'
         OR
-        holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+.*'
+        holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[a-z]+.*'
         OR
         -- colon after the cutter numbers
         item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+:+.*'
@@ -37,9 +37,9 @@ WHERE
         holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+:+.*'
         OR
         -- more numbers after the second set of cutter letters
-        item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Za-z]+[0-9]+.*'
+        item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+[0-9]+.*'
         OR
-        holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Za-z]+[0-9]+.*'
+        holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+[0-9]+.*'
     ) 
     -- AND NOT EXISTS (
     --     SELECT
