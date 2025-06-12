@@ -34,5 +34,7 @@ WHERE
     --         item_notes.item_id = item__t.id
     --         AND item_notes.note_type_name = 'Shelving order'
     -- )
+ORDER BY 
+    item__t.barcode
 $$
 LANGUAGE SQL;
