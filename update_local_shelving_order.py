@@ -131,6 +131,16 @@ def generate_local_shelving_order(call_number):
 
 def update_item(report_item, local_shelving_order):
     def update_item_internal(folio):
+        if report_item["id"] in [
+            "7b4c277c-d474-4b06-a470-5c5c92be84f4",
+            "7b56cc69-8e7c-497c-8486-f23a1da0f4e5",
+            "ff264b56-7e66-4093-93d0-c7809b93eb12",
+            "87501c96-327b-4e66-b0fb-6adb8e332f68",
+            "e7dc49c3-015b-4e09-9f35-6b51fd35d141",
+        ]:
+            logger.warn("skipping id of item known bad: %s", report_item["id"])
+            return
+
         item = load_item(folio, report_item["id"])
 
         # Most items have barcodes, but not all. This is used purely for output so HRID is also ok.
