@@ -9,7 +9,7 @@ CREATE FUNCTION get_items_needing_local_shelving_order_removed(
 )
 RETURNS TABLE (
 	item_id TEXT,
-    note TEXT,
+    note TEXT
 )
 AS
 $$
