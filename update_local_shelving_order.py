@@ -75,12 +75,13 @@ def run():
             logger.info("No more items need local shelving order")
             break
         for report_item in report_items:
-            call_number = (
-                report_item["item_call_number"]
-                if report_item["item_call_number"]
-                else report_item["hr_call_number"]
-            )
-            local_shelving_order = generate_local_shelving_order(call_number)
+            # call_number = (
+            #     report_item["item_call_number"]
+            #     if report_item["item_call_number"]
+            #     else report_item["hr_call_number"]
+            # )
+            # local_shelving_order = generate_local_shelving_order(call_number)
+            local_shelving_order = None
             update_item(report_item, local_shelving_order)
         offset += int(config["MetaDB"]["batch_size"])
 
@@ -266,13 +267,13 @@ def update_item(report_item, local_shelving_order):
                         barcode,
                     )
                     return
-        item["notes"].append(
-            {
-                "itemNoteTypeId": shelving_order_item_note_type_id,
-                "note": local_shelving_order,
-                "staffOnly": True,
-            }
-        )
+        # item["notes"].append(
+        #     {
+        #         "itemNoteTypeId": shelving_order_item_note_type_id,
+        #         "note": local_shelving_order,
+        #         "staffOnly": True,
+        #     }
+        # )
         save_item(folio, item)
         logger.debug(
             "Updated item with barcode %s with local shelving order %s",
