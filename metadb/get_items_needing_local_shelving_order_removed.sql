@@ -8,7 +8,7 @@ CREATE FUNCTION get_items_needing_local_shelving_order_removed(
     query_limit BIGINT
 )
 RETURNS TABLE (
-	item_id TEXT,
+	id TEXT,
     note TEXT
 )
 AS
