@@ -5,7 +5,8 @@ DROP FUNCTION IF EXISTS get_items_needing_local_shelving_order;
 
 CREATE FUNCTION get_items_needing_local_shelving_order(
     query_offset BIGINT,
-    query_limit BIGINT
+    query_limit BIGINT,
+    call_number_prefix TEXT DEFAULT NULL
 )
 RETURNS TABLE (
 	id TEXT,
@@ -34,16 +35,36 @@ WHERE
         item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]{4,}.*'
         OR
         holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]{4,}.*'
-    ) 
-    AND NOT EXISTS (
-        SELECT
-            1
-        FROM
-            folio_derived.item_notes item_notes
-        WHERE
-            item_notes.item_id = item__t.id
-            AND item_notes.note_type_name = 'Shelving order'
+        OR
+        -- lowercase letters after the cutter numbers
+        item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[a-z]+.*'
+        OR
+        holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[a-z]+.*'
+        OR
+        -- colon after the cutter numbers
+        item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+:+.*'
+        OR
+        holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+:+.*'
+        OR
+        -- more numbers after the second set of cutter letters
+        item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+[0-9]+.*'
+        OR
+        holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+[0-9]+.*'
     )
+    AND (
+        $3 IS NULL
+        OR item__t.item_level_call_number LIKE $3 || '%'
+        OR holdings_record__t.call_number LIKE $3 || '%'
+    )
+    -- AND NOT EXISTS (
+    --     SELECT
+    --         1
+    --     FROM
+    --         folio_derived.item_notes item_notes
+    --     WHERE
+    --         item_notes.item_id = item__t.id
+    --         AND item_notes.note_type_name = 'Shelving order'
+    -- )
 ORDER BY 
     item__t.barcode
 OFFSET

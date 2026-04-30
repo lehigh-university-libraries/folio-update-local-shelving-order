@@ -1,3 +1,4 @@
+import argparse
 from configparser import ConfigParser
 from folioclient import FolioClient  # pip install folioclient
 import logging
@@ -8,6 +9,7 @@ import requests
 logger = None
 config = None
 shelving_order_item_note_type_id = None
+call_number_prefix = None
 
 
 def main():
@@ -16,9 +18,17 @@ def main():
 
 
 def init():
+    init_args()
     init_config()
     init_logging()
     init_folio()
+
+
+def init_args():
+    global call_number_prefix
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--call-number-prefix", default=None)
+    call_number_prefix = parser.parse_args().call_number_prefix
 
 
 def init_config():
@@ -87,32 +97,28 @@ def run():
 
 def load_count_report():
     def load_count_internal(folio):
-        result = folio.folio_post(
-            path="/ldp/db/reports",
-            payload={
-                "url": config["MetaDB"]["items_count_url"],
-            },
-        )
-        total = result["records"][0]["total"]
-        return total
+        payload = {"url": config["MetaDB"]["items_count_url"]}
+        if call_number_prefix:
+            payload["params"] = {"call_number_prefix": call_number_prefix}
+        result = folio.folio_post(path="/ldp/db/reports", payload=payload)
+        return result["records"][0]["total"]
 
     return run_with_folio_client(load_count_internal)
 
 
 def load_items_report_batch(offset):
     def load_items_internal(folio):
+        params = {
+            "query_offset": str(offset),
+            "query_limit": config["MetaDB"]["batch_size"],
+        }
+        if call_number_prefix:
+            params["call_number_prefix"] = call_number_prefix
         result = folio.folio_post(
             path="/ldp/db/reports",
-            payload={
-                "url": config["MetaDB"]["items_query_url"],
-                "params": {
-                    "query_offset": str(offset),
-                    "query_limit": config["MetaDB"]["batch_size"],
-                },
-            },
+            payload={"url": config["MetaDB"]["items_query_url"], "params": params},
         )
-        records = result["records"]
-        return records
+        return result["records"]
 
     return run_with_folio_client(load_items_internal)
 
