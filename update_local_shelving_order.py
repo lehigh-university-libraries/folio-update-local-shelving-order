@@ -127,7 +127,7 @@ def generate_local_shelving_order(call_number):
     base_url = config["ShelvingOrderService"]["base_url"]
     timeout = int(config["ShelvingOrderService"]["timeout"])
     url = base_url + call_number  # no encoding needed?
-    response = requests.get(url, timeout=timeout)
+    response = requests.get(url, timeout=timeout, verify=False)
 
     if response.status_code == 200:
         return response.text
