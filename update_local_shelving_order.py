@@ -15,6 +15,7 @@ shelving_order_item_note_type_id = None
 call_number_prefix = None
 start_offset = 0
 overwrite = False
+args = None
 
 
 def main():
@@ -38,10 +39,11 @@ def init():
     init_config()
     init_logging()
     init_folio()
+    logger.info("Running with parameters: %s", vars(args))
 
 
 def init_args():
-    global call_number_prefix, start_offset, overwrite
+    global call_number_prefix, start_offset, overwrite, args
     parser = argparse.ArgumentParser()
     parser.add_argument("--call-number-prefix", default=None)
     parser.add_argument("--start-offset", type=int, default=0)
