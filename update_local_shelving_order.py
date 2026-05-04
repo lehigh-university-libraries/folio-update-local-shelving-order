@@ -13,6 +13,8 @@ logger = None
 config = None
 shelving_order_item_note_type_id = None
 call_number_prefix = None
+start_offset = 0
+overwrite = False
 
 
 def main():
@@ -39,10 +41,15 @@ def init():
 
 
 def init_args():
-    global call_number_prefix
+    global call_number_prefix, start_offset, overwrite
     parser = argparse.ArgumentParser()
     parser.add_argument("--call-number-prefix", default=None)
-    call_number_prefix = parser.parse_args().call_number_prefix
+    parser.add_argument("--start-offset", type=int, default=0)
+    parser.add_argument("--overwrite", action="store_true", default=False)
+    args = parser.parse_args()
+    call_number_prefix = args.call_number_prefix
+    start_offset = args.start_offset
+    overwrite = args.overwrite
 
 
 def init_config():
@@ -91,7 +98,7 @@ def run():
     total = load_count_report()
     logger.info("%i items need local shelving order.", total)
 
-    offset = int(config["ShelvingOrderService"]["start_offset"])
+    offset = start_offset
     while True:
         logger.info("Loading items from offset %i", offset)
         report_items = load_items_report_batch(offset)
@@ -164,7 +171,7 @@ def update_item(report_item, local_shelving_order):
             # In the future it may be necessary to handle changed call numbers, where instead of
             # skipping these items we'd have to replace the existing note.
             if note["itemNoteTypeId"] == shelving_order_item_note_type_id:
-                if config.getboolean("ShelvingOrderService", "overwrite"):
+                if overwrite:
                     # Delete old note before adding new one below
                     item["notes"].remove(note)
                 else:
@@ -217,7 +224,7 @@ def run_with_folio_client(fn):
 
 def email_subject_context():
     prefix_part = call_number_prefix if call_number_prefix else "all"
-    offset = config["ShelvingOrderService"]["start_offset"]
+    offset = start_offset
     return f"prefix={prefix_part}, offset={offset}"
 
 
