@@ -1,7 +1,10 @@
 import argparse
 from configparser import ConfigParser
+from email.mime.text import MIMEText
 from folioclient import FolioClient  # pip install folioclient
 import logging
+import smtplib
+import traceback
 
 # import os
 import requests
@@ -14,7 +17,18 @@ call_number_prefix = None
 
 def main():
     init()
-    run()
+    try:
+        run()
+        send_email(
+            f"Local shelving order updated for {email_subject_context()}",
+            "Run completed successfully.",
+        )
+    except Exception:
+        send_email(
+            f"Error updating local shelving order for {email_subject_context()}",
+            traceback.format_exc(),
+        )
+        raise
 
 
 def init():
@@ -199,6 +213,28 @@ def run_with_folio_client(fn):
         folio_config["password"],
     ) as folio:
         return fn(folio)
+
+
+def email_subject_context():
+    prefix_part = call_number_prefix if call_number_prefix else "all"
+    offset = config["ShelvingOrderService"]["start_offset"]
+    return f"prefix={prefix_part}, offset={offset}"
+
+
+def send_email(subject, body):
+    if "Email" not in config:
+        return
+    email_config = config["Email"]
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = email_config["from_address"]
+    msg["To"] = email_config["to_address"]
+    with smtplib.SMTP(
+        email_config["smtp_host"], int(email_config["smtp_port"])
+    ) as smtp:
+        smtp.sendmail(
+            email_config["from_address"], [email_config["to_address"]], msg.as_string()
+        )
 
 
 if __name__ == "__main__":

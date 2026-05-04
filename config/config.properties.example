@@ -41,3 +41,9 @@ overwrite=0
 [Logging]
 # level = INFO
 level = DEBUG
+
+[Email]
+smtp_host=smtp.example.com
+smtp_port=25
+from_address=folio-shelving@example.com
+to_address=someone@example.com
