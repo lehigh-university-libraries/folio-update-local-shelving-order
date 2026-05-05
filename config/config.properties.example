@@ -31,13 +31,13 @@ base_url=https://apps.myinstitution.edu/folio-shelving-order/shelf-key?callNumbe
 # Seconds
 timeout=30
 
-start_offset=0
-
-# When updating the local shelving order for an item that already has this item note set,
-# 0: Leave the item as is
-# 1: Overwrite the existing shelving order item note
-overwrite=0
 
 [Logging]
 # level = INFO
 level = DEBUG
+
+[Email]
+smtp_host=smtp.example.com
+smtp_port=25
+from_address=folio-shelving@example.com
+to_address=someone@example.com

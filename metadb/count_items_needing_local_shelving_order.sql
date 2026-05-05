@@ -4,6 +4,7 @@
 DROP FUNCTION IF EXISTS count_items_needing_local_shelving_order;
 
 CREATE FUNCTION count_items_needing_local_shelving_order(
+    call_number_prefix TEXT DEFAULT NULL
 )
 RETURNS TABLE (
 	total BIGINT
@@ -40,7 +41,12 @@ WHERE
         item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+[0-9]+.*'
         OR
         holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]+[A-Z]+[0-9]+.*'
-    ) 
+    )
+    AND (
+        $1 IS NULL
+        OR item__t.item_level_call_number LIKE $1 || '%'
+        OR holdings_record__t.call_number LIKE $1 || '%'
+    )
     -- AND NOT EXISTS (
     --     SELECT
     --         1
