@@ -1,3 +1,2 @@
 folioclient
-humanize
 requests

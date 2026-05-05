@@ -1,9 +1,8 @@
 import argparse
 from configparser import ConfigParser
-from datetime import timedelta
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from folioclient import FolioClient  # pip install folioclient
-import humanize
 import logging
 import smtplib
 import time
@@ -107,9 +106,9 @@ def run():
     items_to_process = total - start_offset
     if speed and items_to_process > 0:
         logger.info(
-            "%i items need local shelving order. Estimated time: %s",
+            "%i items need local shelving order. Estimated finish: %s",
             total,
-            format_duration(items_to_process * speed),
+            estimate_finish_time(items_to_process * speed),
         )
     else:
         logger.info("%i items need local shelving order.", total)
@@ -119,9 +118,9 @@ def run():
         items_remaining = total - offset
         if speed and items_remaining > 0:
             logger.info(
-                "Loading items from offset %i, estimating %s remaining",
+                "Loading items from offset %i, estimated finish: %s",
                 offset,
-                format_duration(items_remaining * speed),
+                estimate_finish_time(items_remaining * speed),
             )
         else:
             logger.info("Loading items from offset %i", offset)
@@ -265,10 +264,8 @@ def save_speed(speed):
         f.write(str(speed))
 
 
-def format_duration(seconds):
-    return humanize.precisedelta(
-        timedelta(seconds=int(seconds)), minimum_unit="seconds"
-    )
+def estimate_finish_time(seconds):
+    return (datetime.now() + timedelta(seconds=int(seconds))).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def email_subject_context():
