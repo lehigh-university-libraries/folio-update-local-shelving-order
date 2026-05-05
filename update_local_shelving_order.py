@@ -1,13 +1,17 @@
 import argparse
 from configparser import ConfigParser
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from folioclient import FolioClient  # pip install folioclient
 import logging
 import smtplib
+import time
 import traceback
 
 # import os
 import requests
+
+SPEED_FILE = "seconds_per_record.txt"
 
 logger = None
 config = None
@@ -98,11 +102,30 @@ def init_item_note_type(folio):
 
 def run():
     total = load_count_report()
-    logger.info("%i items need local shelving order.", total)
+    speed = load_speed()
+    items_to_process = total - start_offset
+    if speed and items_to_process > 0:
+        logger.info(
+            "%i items need local shelving order. Estimated finish: %s",
+            total,
+            estimate_finish_time(items_to_process * speed),
+        )
+    else:
+        logger.info("%i items need local shelving order.", total)
 
     offset = start_offset
     while True:
-        logger.info("Loading items from offset %i", offset)
+        items_remaining = total - offset
+        if speed and items_remaining > 0:
+            logger.info(
+                "Loading items from offset %i, estimated finish: %s",
+                offset,
+                estimate_finish_time(items_remaining * speed),
+            )
+        else:
+            logger.info("Loading items from offset %i", offset)
+
+        batch_start = time.time()
         report_items = load_items_report_batch(offset)
         if not report_items:
             logger.info("No more items need local shelving order")
@@ -115,6 +138,10 @@ def run():
             )
             local_shelving_order = generate_local_shelving_order(call_number)
             update_item(report_item, local_shelving_order)
+
+        speed = round(time.time() - batch_start, 2) / len(report_items)
+        if len(report_items) >= 100:
+            save_speed(speed)
         offset += int(config["MetaDB"]["batch_size"])
 
 
@@ -222,6 +249,23 @@ def run_with_folio_client(fn):
         folio_config["password"],
     ) as folio:
         return fn(folio)
+
+
+def load_speed():
+    try:
+        with open(SPEED_FILE) as f:
+            return float(f.read().strip())
+    except (FileNotFoundError, ValueError):
+        return None
+
+
+def save_speed(speed):
+    with open(SPEED_FILE, "w") as f:
+        f.write(str(speed))
+
+
+def estimate_finish_time(seconds):
+    return (datetime.now() + timedelta(seconds=int(seconds))).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def email_subject_context():
