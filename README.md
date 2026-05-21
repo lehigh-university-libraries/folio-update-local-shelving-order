@@ -18,7 +18,7 @@ Uses https://github.com/lehigh-university-libraries/folio-shelving-order to actu
 |---|---|---|
 | `--call-number-prefix` | _(none)_ | Limit processing to items whose call number (item or holdings level) starts with this prefix. |
 | `--start-offset` | `0` | Skip this many items before processing begins (useful for resuming a partial run). |
-| `--overwrite` | _(flag, off by default)_ | If present, replace any existing shelving order note. Otherwise items that already have the note are skipped. |
+| `--overwrite` | _(flag, off by default)_ | If present, items that already have a shelving order note are included in the query and the note is replaced. Otherwise those items are excluded from the SQL query entirely. |
 
 Example:
 

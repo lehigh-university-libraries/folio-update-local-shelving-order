@@ -147,10 +147,13 @@ def run():
 
 def load_count_report():
     def load_count_internal(folio):
-        payload = {"url": config["MetaDB"]["items_count_url"]}
+        params = {"overwrite": str(overwrite).lower()}
         if call_number_prefix:
-            payload["params"] = {"call_number_prefix": call_number_prefix}
-        result = folio.folio_post(path="/ldp/db/reports", payload=payload)
+            params["call_number_prefix"] = call_number_prefix
+        result = folio.folio_post(
+            path="/ldp/db/reports",
+            payload={"url": config["MetaDB"]["items_count_url"], "params": params},
+        )
         return result["records"][0]["total"]
 
     return run_with_folio_client(load_count_internal)
@@ -161,6 +164,7 @@ def load_items_report_batch(offset):
         params = {
             "query_offset": str(offset),
             "query_limit": config["MetaDB"]["batch_size"],
+            "overwrite": str(overwrite).lower(),
         }
         if call_number_prefix:
             params["call_number_prefix"] = call_number_prefix
@@ -193,12 +197,9 @@ def update_item(report_item, local_shelving_order):
         barcode = item["barcode"] if "barcode" in item else "HRID:" + item["hrid"]
 
         for note in list(item["notes"]):
-            # The MetaDB query uses a folio_derived schema table for the item note, which is only
-            # updated daily. Therefore if the app is run a second time in the same day, it will
-            # load items that already have these notes, which the MetaDB query didn't yet know.
-            # Thus, skip those items.
-            # In the future it may be necessary to handle changed call numbers, where instead of
-            # skipping these items we'd have to replace the existing note.
+            # folio_derived.item_notes (used by the SQL query) is only updated daily, so a
+            # same-day re-run without --overwrite can still fetch items that were just updated.
+            # Skip those here. To replace existing notes, use --overwrite.
             if note["itemNoteTypeId"] == shelving_order_item_note_type_id:
                 if overwrite:
                     # Delete old note before adding new one below

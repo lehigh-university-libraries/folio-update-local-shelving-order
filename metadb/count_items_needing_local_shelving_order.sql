@@ -4,7 +4,8 @@
 DROP FUNCTION IF EXISTS count_items_needing_local_shelving_order;
 
 CREATE FUNCTION count_items_needing_local_shelving_order(
-    call_number_prefix TEXT DEFAULT NULL
+    call_number_prefix TEXT DEFAULT NULL,
+    overwrite BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (
 	total BIGINT
@@ -46,14 +47,18 @@ WHERE
         OR item__t.item_level_call_number LIKE $1 || '%'
         OR holdings_record__t.call_number LIKE $1 || '%'
     )
-    -- AND NOT EXISTS (
-    --     SELECT
-    --         1
-    --     FROM
-    --         folio_derived.item_notes item_notes
-    --     WHERE
-    --         item_notes.item_id = item__t.id
-    --         AND item_notes.note_type_name = 'Shelving order'
-    -- )
+    AND (
+        -- when overwrite=true, short-circuits and skips the NOT EXISTS check
+        $2
+        OR NOT EXISTS (
+            SELECT
+                1
+            FROM
+                folio_derived.item_notes item_notes
+            WHERE
+                item_notes.item_id = item__t.id
+                AND item_notes.note_type_name = 'Shelving order'
+        )
+    )
 $$
 LANGUAGE SQL;
