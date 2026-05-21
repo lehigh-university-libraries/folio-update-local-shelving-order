@@ -6,7 +6,8 @@ DROP FUNCTION IF EXISTS get_items_needing_local_shelving_order;
 CREATE FUNCTION get_items_needing_local_shelving_order(
     query_offset BIGINT,
     query_limit BIGINT,
-    call_number_prefix TEXT DEFAULT NULL
+    call_number_prefix TEXT DEFAULT NULL,
+    overwrite BOOLEAN DEFAULT FALSE
 )
 RETURNS TABLE (
 	id TEXT,
@@ -56,15 +57,19 @@ WHERE
         OR item__t.item_level_call_number LIKE $3 || '%'
         OR holdings_record__t.call_number LIKE $3 || '%'
     )
-    -- AND NOT EXISTS (
-    --     SELECT
-    --         1
-    --     FROM
-    --         folio_derived.item_notes item_notes
-    --     WHERE
-    --         item_notes.item_id = item__t.id
-    --         AND item_notes.note_type_name = 'Shelving order'
-    -- )
+    AND (
+        -- when overwrite=true, short-circuits and skips the NOT EXISTS check
+        $4
+        OR NOT EXISTS (
+            SELECT
+                1
+            FROM
+                folio_derived.item_notes item_notes
+            WHERE
+                item_notes.item_id = item__t.id
+                AND item_notes.note_type_name = 'Shelving order'
+        )
+    )
 ORDER BY 
     item__t.barcode
 OFFSET
