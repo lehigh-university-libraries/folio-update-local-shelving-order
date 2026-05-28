@@ -33,6 +33,7 @@ JOIN folio_inventory.call_number_type__t call_number_type__t
 WHERE
 	call_number_type__t.name = 'Dewey Decimal classification'
     AND (
+        -- cutter number over three digits
         item__t.item_level_call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]{4,}.*'
         OR
         holdings_record__t.call_number ~ '[0-9]{3}(.[0-9]+)? [A-Z]{1,2}[0-9]{4,}.*'
